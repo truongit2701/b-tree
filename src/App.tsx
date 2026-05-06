@@ -94,17 +94,9 @@ export default function App() {
                     <div className="absolute top-4 left-6 z-10 px-3 py-1 bg-sky-500/10 border border-sky-500/20 rounded-full">
                       <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">B-Tree</span>
                     </div>
-                    <AnimatePresence mode="wait">
-                      <motion.div 
-                        key={`${current}-btree`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="w-full h-full"
-                      >
-                        <TreeView tree={current >= 0 ? steps[current].btree : null} />
-                      </motion.div>
-                    </AnimatePresence>
+                    <div className="w-full h-full">
+                      <TreeView tree={current >= 0 ? steps[current].btree : null} />
+                    </div>
                   </div>
 
                   {/* B+ Tree Section */}
@@ -112,17 +104,9 @@ export default function App() {
                     <div className="absolute top-4 left-6 z-10 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
                       <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">B+ Tree</span>
                     </div>
-                    <AnimatePresence mode="wait">
-                      <motion.div 
-                        key={`${current}-bplus`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="w-full h-full"
-                      >
-                        <TreeView tree={current >= 0 ? steps[current].bplus : null} />
-                      </motion.div>
-                    </AnimatePresence>
+                    <div className="w-full h-full">
+                      <TreeView tree={current >= 0 ? steps[current].bplus : null} />
+                    </div>
                   </div>
                 </div>
                 

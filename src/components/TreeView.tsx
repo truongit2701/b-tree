@@ -43,7 +43,7 @@ const TreeNode = ({ node, x, y, parentX, parentY }: TreeNodeProps) => {
               ? (node.isBPlus ? "#818cf8" : "#10b981") 
               : (node.isBPlus ? "#6366f1" : "#38bdf8")
           }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.8 }}
           x1={parentX}
           y1={parentY}
           x2={x + nodeWidth / 2}
@@ -60,20 +60,27 @@ const TreeNode = ({ node, x, y, parentX, parentY }: TreeNodeProps) => {
         animate={{ 
           scale: 1, 
           opacity: 1,
-          filter: node.isInPath ? "drop-shadow(0 0 12px rgba(16, 185, 129, 0.4))" : "drop-shadow(0 0 8px rgba(14, 165, 233, 0.3))"
+          filter: node.isInPath 
+            ? (node.isBPlus ? "drop-shadow(0 0 12px rgba(129, 140, 248, 0.6))" : "drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))") 
+            : "drop-shadow(0 0 8px rgba(14, 165, 233, 0.2))"
         }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
       >
-        <rect
+        <motion.rect
+          layout
           x={x}
           y={y}
           width={nodeWidth}
           height={NODE_HEIGHT}
           rx={8}
+          animate={node.isInPath ? {
+            strokeWidth: [2, 5, 2],
+            transition: { repeat: Infinity, duration: 2 }
+          } : { strokeWidth: 2 }}
           className={`fill-slate-900/90 stroke-2 transition-colors duration-500 ${
             node.isInPath 
-              ? (node.isBPlus ? "stroke-indigo-500" : "stroke-emerald-500") 
-              : (node.isBPlus ? "stroke-indigo-500/50" : "stroke-sky-500/50")
+              ? (node.isBPlus ? "stroke-indigo-400" : "stroke-emerald-400") 
+              : (node.isBPlus ? "stroke-indigo-500/30" : "stroke-sky-500/30")
           }`}
         />
         
