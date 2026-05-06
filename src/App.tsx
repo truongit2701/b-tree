@@ -101,7 +101,7 @@ export default function App() {
       {/* Credit Badge */}
       <div className="absolute bottom-4 right-4 z-50 flex items-center gap-2">
         <a 
-          href="https://github.com/votruongvan/b-tree" 
+          href="https://github.com/truongit2701/b-tree" 
           target="_blank" 
           rel="noopener noreferrer"
           className="p-2 glass-panel border border-slate-800/50 rounded-full hover:bg-slate-800/50 transition-colors text-slate-400 hover:text-white"
