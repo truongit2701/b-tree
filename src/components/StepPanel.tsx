@@ -1,14 +1,13 @@
-import React from 'react';
 import { motion } from "framer-motion";
 
-export default function StepPanel({ steps, current, setCurrent }) {
+export default function StepPanel({ steps, current, setCurrent }: {steps: any[], current: number, setCurrent: (i: number) => void}) {
   return (
     <div className="h-full flex items-center px-6 gap-3 overflow-x-auto no-scrollbar">
       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mr-2 whitespace-nowrap">
         History
       </span>
       <div className="flex gap-2">
-        {steps.map((_, i) => (
+        {steps.map((_: any, i: number) => (
           <motion.button
             key={i}
             whileHover={{ scale: 1.05 }}

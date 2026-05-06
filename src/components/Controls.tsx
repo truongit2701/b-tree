@@ -55,7 +55,7 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
 
     treeInstance.current.clearLogs();
     const path = treeInstance.current.getSearchPath(treeInstance.current.root, val);
-    const result = treeInstance.current.search(treeInstance.current.root, val);
+//     const result = treeInstance.current.search(treeInstance.current.root, val);
     const snapshot = JSON.parse(JSON.stringify(treeInstance.current.getSnapshot(treeInstance.current.root, val, path)));
     
     setSteps(prev => [...prev, snapshot]);
@@ -151,7 +151,7 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
                 <p className="text-[10px] font-medium italic">No logs yet...</p>
               </div>
             ) : (
-              logs.map((log, i) => (
+              logs.map((log) => (
                 <div key={log.id} className="space-y-1 group">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-mono text-slate-600 bg-slate-950 px-1 rounded border border-slate-800">

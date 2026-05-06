@@ -1,5 +1,10 @@
 export class BTreeNode {
-  constructor(t, isLeaf = true) {
+  t: number;
+  keys: number[];
+  children: BTreeNode[];
+  isLeaf: boolean;
+
+  constructor(t: number, isLeaf: boolean = true) {
     this.t = t; // Minimum degree
     this.keys = [];
     this.children = [];
@@ -7,16 +12,33 @@ export class BTreeNode {
   }
 }
 
+export interface BTreeLog {
+  id: string;
+  timestamp: string;
+  message: string;
+}
+
+export interface SnapshotNode {
+  keys: { value: number; isTarget: boolean; isPath: boolean }[];
+  isLeaf: boolean;
+  isInPath: boolean;
+  children: SnapshotNode[];
+}
+
 export class BTree {
-  constructor(t) {
+  root: BTreeNode;
+  t: number;
+  logs: BTreeLog[];
+
+  constructor(t: number) {
     this.root = new BTreeNode(t, true);
     this.t = t;
     this.logs = [];
   }
 
-  addLog(msg) {
+  addLog(msg: string) {
     this.logs.push({
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       timestamp: new Date().toLocaleTimeString(),
       message: msg
     });
@@ -27,7 +49,7 @@ export class BTree {
   }
 
   // Get a deep copy of the current tree for visualization
-  getSnapshot(node = this.root, targetValue = null, path = []) {
+  getSnapshot(node: BTreeNode = this.root, targetValue: number | null = null, path: BTreeNode[] = []): SnapshotNode | null {
     if (!node) return null;
     
     const isInPath = path.includes(node);
@@ -40,11 +62,11 @@ export class BTree {
       })),
       isLeaf: node.isLeaf,
       isInPath: isInPath,
-      children: node.children ? node.children.map((child) => this.getSnapshot(child, targetValue, path)) : [],
+      children: node.children ? node.children.map((child) => this.getSnapshot(child, targetValue, path)!) : [],
     };
   }
 
-  getSearchPath(x, k, path = []) {
+  getSearchPath(x: BTreeNode, k: number, path: BTreeNode[] = []): BTreeNode[] {
     path.push(x);
     let i = 0;
     while (i < x.keys.length && k > x.keys[i]) {
@@ -59,7 +81,7 @@ export class BTree {
     return this.getSearchPath(x.children[i], k, path);
   }
 
-  insert(k) {
+  insert(k: number) {
     this.addLog(`Inserting value: ${k}`);
     let root = this.root;
     if (root.keys.length === 2 * this.t - 1) {
@@ -74,7 +96,7 @@ export class BTree {
     }
   }
 
-  splitChild(x, i, y) {
+  splitChild(x: BTreeNode, i: number, y: BTreeNode) {
     let t = this.t;
     let z = new BTreeNode(t, y.isLeaf);
     const middleKey = y.keys[t - 1];
@@ -108,7 +130,7 @@ export class BTree {
     x.keys.splice(i, 0, middleKey);
   }
 
-  insertNonFull(x, k) {
+  insertNonFull(x: BTreeNode, k: number) {
     let i = x.keys.length - 1;
 
     if (x.isLeaf) {
@@ -139,7 +161,7 @@ export class BTree {
     }
   }
 
-  search(x, k) {
+  search(x: BTreeNode, k: number): { node: BTreeNode; index: number } | null {
     let i = 0;
     while (i < x.keys.length && k > x.keys[i]) {
       i++;
@@ -158,7 +180,7 @@ export class BTree {
     return this.search(x.children[i], k);
   }
 
-  delete(k) {
+  delete(k: number) {
     this.addLog(`Deleting value: ${k}`);
     this.deleteRecursive(this.root, k);
     if (this.root.keys.length === 0 && !this.root.isLeaf) {
@@ -167,7 +189,7 @@ export class BTree {
     }
   }
 
-  deleteRecursive(x, k) {
+  deleteRecursive(x: BTreeNode, k: number) {
     let t = this.t;
     let i = 0;
     while (i < x.keys.length && k > x.keys[i]) {
@@ -212,21 +234,21 @@ export class BTree {
     }
   }
 
-  getPredecessor(x) {
+  getPredecessor(x: BTreeNode): number {
     while (!x.isLeaf) {
       x = x.children[x.keys.length];
     }
     return x.keys[x.keys.length - 1];
   }
 
-  getSuccessor(x) {
+  getSuccessor(x: BTreeNode): number {
     while (!x.isLeaf) {
       x = x.children[0];
     }
     return x.keys[0];
   }
 
-  fill(x, i) {
+  fill(x: BTreeNode, i: number) {
     let t = this.t;
     if (i !== 0 && x.children[i - 1].keys.length >= t) {
       this.borrowFromPrev(x, i);
@@ -241,29 +263,29 @@ export class BTree {
     }
   }
 
-  borrowFromPrev(x, i) {
+  borrowFromPrev(x: BTreeNode, i: number) {
     let child = x.children[i];
     let sibling = x.children[i - 1];
 
     child.keys.splice(0, 0, x.keys[i - 1]);
     if (!child.isLeaf) {
-      child.children.splice(0, 0, sibling.children.pop());
+      child.children.splice(0, 0, sibling.children.pop()!);
     }
-    x.keys[i - 1] = sibling.keys.pop();
+    x.keys[i - 1] = sibling.keys.pop()!;
   }
 
-  borrowFromNext(x, i) {
+  borrowFromNext(x: BTreeNode, i: number) {
     let child = x.children[i];
     let sibling = x.children[i + 1];
 
     child.keys.push(x.keys[i]);
     if (!child.isLeaf) {
-      child.children.push(sibling.children.shift());
+      child.children.push(sibling.children.shift()!);
     }
-    x.keys[i] = sibling.keys.shift();
+    x.keys[i] = sibling.keys.shift()!;
   }
 
-  merge(x, i, y, z) {
+  merge(x: BTreeNode, i: number, y: BTreeNode, z: BTreeNode) {
     y.keys.push(x.keys[i]);
     for (let j = 0; j < z.keys.length; j++) {
       y.keys.push(z.keys[j]);
