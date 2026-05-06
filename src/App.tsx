@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { BTree } from "./utils/BTree";
 import Controls from "./components/Controls";
 import TreeView from "./components/TreeView";
@@ -6,11 +6,38 @@ import StepPanel from "./components/StepPanel";
 import { motion, AnimatePresence } from "framer-motion";
 import Docs from "./components/Docs";
 
+import { BPlusTree } from "./utils/BPlusTree";
+
 export default function App() {
   const [steps, setSteps] = useState<any[]>([]);
   const [current, setCurrent] = useState(-1);
   const [view, setView] = useState<'simulator' | 'docs'>('simulator');
   const treeInstance = useRef(new BTree(2));
+  const bPlusInstance = useRef(new BPlusTree(2));
+
+  // Initialize with sample data
+  useEffect(() => {
+    // Reset trees to avoid double-insertion in StrictMode
+    treeInstance.current = new BTree(2);
+    bPlusInstance.current = new BPlusTree(2);
+
+    const sampleData = [10, 20, 5, 15, 30, 25];
+    sampleData.forEach(val => {
+      treeInstance.current.insert(val);
+      bPlusInstance.current.insert(val);
+    });
+    
+    const snapshot = {
+      btree: JSON.parse(JSON.stringify(treeInstance.current.getSnapshot())),
+      bplus: JSON.parse(JSON.stringify(bPlusInstance.current.getSnapshot()))
+    };
+    
+    setSteps([snapshot]);
+    setCurrent(0);
+    // Clear logs after initialization to start fresh for user
+    treeInstance.current.clearLogs();
+    bPlusInstance.current.clearLogs();
+  }, []);
 
   return (
     <div className="h-screen bg-slate-950 text-slate-200 flex flex-col selection:bg-sky-500/30 overflow-hidden">
@@ -55,26 +82,53 @@ export default function App() {
                   setSteps={setSteps} 
                   setCurrent={setCurrent} 
                   treeInstance={treeInstance}
+                  bPlusInstance={bPlusInstance}
                 />
               </aside>
 
               {/* Stage */}
-              <section className="flex-1 relative overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:32px_32px]">
-                <AnimatePresence mode="wait">
-                  <motion.div 
-                    key={current}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="w-full h-full"
-                  >
-                    <TreeView tree={current >= 0 ? steps[current] : null} />
-                  </motion.div>
-                </AnimatePresence>
+              <section className="flex-1 relative overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:32px_32px] flex flex-col">
+                <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800/50">
+                  {/* B-Tree Section */}
+                  <div className="flex-1 relative overflow-hidden flex flex-col">
+                    <div className="absolute top-4 left-6 z-10 px-3 py-1 bg-sky-500/10 border border-sky-500/20 rounded-full">
+                      <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">B-Tree</span>
+                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.div 
+                        key={`${current}-btree`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="w-full h-full"
+                      >
+                        <TreeView tree={current >= 0 ? steps[current].btree : null} />
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* B+ Tree Section */}
+                  <div className="flex-1 relative overflow-hidden flex flex-col">
+                    <div className="absolute top-4 left-6 z-10 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                      <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">B+ Tree</span>
+                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.div 
+                        key={`${current}-bplus`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="w-full h-full"
+                      >
+                        <TreeView tree={current >= 0 ? steps[current].bplus : null} />
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                </div>
                 
                 {/* Bottom Step Panel */}
                 {steps.length > 0 && (
-                  <footer className="absolute bottom-0 left-0 right-0 h-14 border-t border-slate-800/50 glass-panel z-10">
+                  <footer className="absolute bottom-0 left-0 right-0 h-14 border-t border-slate-800/50 glass-panel z-20">
                     <StepPanel 
                       steps={steps} 
                       current={current} 

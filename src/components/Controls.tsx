@@ -1,19 +1,25 @@
 import React, { useState, useRef } from "react";
 import { BTree } from "../utils/BTree";
+import { BPlusTree } from "../utils/BPlusTree";
 
 interface ControlsProps {
   setSteps: React.Dispatch<React.SetStateAction<any[]>>;
   setCurrent: React.Dispatch<React.SetStateAction<number>>;
   treeInstance: React.MutableRefObject<BTree>;
+  bPlusInstance: React.MutableRefObject<BPlusTree>;
 }
 
-export default function Controls({ setSteps, setCurrent, treeInstance }: ControlsProps) {
+export default function Controls({ setSteps, setCurrent, treeInstance, bPlusInstance }: ControlsProps) {
   const [logs, setLogs] = useState<any[]>([]);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const updateLogs = () => {
-    setLogs([...treeInstance.current.logs]);
+    const combinedLogs = [
+      ...treeInstance.current.logs.map(l => ({ ...l, type: 'B' })),
+      ...bPlusInstance.current.logs.map(l => ({ ...l, type: 'B+' }))
+    ].sort((a, b) => a.id.localeCompare(b.id)); // Simple sort by ID/Time
+    setLogs(combinedLogs);
   };
 
   const handleInsert = (e?: React.FormEvent) => {
@@ -24,8 +30,15 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
     if (isNaN(val)) return;
 
     treeInstance.current.clearLogs();
+    bPlusInstance.current.clearLogs();
+    
     treeInstance.current.insert(val);
-    const snapshot = JSON.parse(JSON.stringify(treeInstance.current.getSnapshot()));
+    bPlusInstance.current.insert(val);
+
+    const snapshot = {
+      btree: JSON.parse(JSON.stringify(treeInstance.current.getSnapshot())),
+      bplus: JSON.parse(JSON.stringify(bPlusInstance.current.getSnapshot()))
+    };
     
     setSteps(prev => [...prev, snapshot]);
     setCurrent(prev => prev + 1);
@@ -42,7 +55,9 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
 
   const handleClear = () => {
     treeInstance.current = new BTree(2);
+    bPlusInstance.current = new BPlusTree(2);
     treeInstance.current.clearLogs();
+    bPlusInstance.current.clearLogs();
     setSteps([]);
     setCurrent(-1);
     setLogs([]);
@@ -54,9 +69,18 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
     if (isNaN(val)) return;
 
     treeInstance.current.clearLogs();
-    const path = treeInstance.current.getSearchPath(treeInstance.current.root, val);
-//     const result = treeInstance.current.search(treeInstance.current.root, val);
-    const snapshot = JSON.parse(JSON.stringify(treeInstance.current.getSnapshot(treeInstance.current.root, val, path)));
+    bPlusInstance.current.clearLogs();
+
+    const pathB = treeInstance.current.getSearchPath(treeInstance.current.root, val);
+    const pathBPlus = bPlusInstance.current.getSearchPath(bPlusInstance.current.root, val);
+
+    treeInstance.current.search(treeInstance.current.root, val);
+    bPlusInstance.current.search(bPlusInstance.current.root, val);
+
+    const snapshot = {
+      btree: JSON.parse(JSON.stringify(treeInstance.current.getSnapshot(treeInstance.current.root, val, pathB))),
+      bplus: JSON.parse(JSON.stringify(bPlusInstance.current.getSnapshot(bPlusInstance.current.root, val, pathBPlus)))
+    };
     
     setSteps(prev => [...prev, snapshot]);
     setCurrent(prev => prev + 1);
@@ -69,8 +93,15 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
     if (isNaN(val)) return;
 
     treeInstance.current.clearLogs();
+    bPlusInstance.current.clearLogs();
+
     treeInstance.current.delete(val);
-    const snapshot = JSON.parse(JSON.stringify(treeInstance.current.getSnapshot()));
+    bPlusInstance.current.delete(val);
+
+    const snapshot = {
+      btree: JSON.parse(JSON.stringify(treeInstance.current.getSnapshot())),
+      bplus: JSON.parse(JSON.stringify(bPlusInstance.current.getSnapshot()))
+    };
     
     setSteps(prev => [...prev, snapshot]);
     setCurrent(prev => prev + 1);
@@ -154,12 +185,15 @@ export default function Controls({ setSteps, setCurrent, treeInstance }: Control
               logs.map((log) => (
                 <div key={log.id} className="space-y-1 group">
                   <div className="flex items-center gap-2">
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${log.type === 'B' ? 'bg-sky-500/20 text-sky-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
+                      {log.type}
+                    </span>
                     <span className="text-[9px] font-mono text-slate-600 bg-slate-950 px-1 rounded border border-slate-800">
                       {log.timestamp}
                     </span>
                     <div className="h-[1px] flex-1 bg-slate-800/50 group-last:hidden" />
                   </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed pl-1 border-l border-sky-500/30">
+                  <p className={`text-[11px] leading-relaxed pl-1 border-l ${log.type === 'B' ? 'text-slate-300 border-sky-500/30' : 'text-slate-300 border-indigo-500/30'}`}>
                     {log.message}
                   </p>
                 </div>

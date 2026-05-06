@@ -39,7 +39,9 @@ const TreeNode = ({ node, x, y, parentX, parentY }: TreeNodeProps) => {
           animate={{ 
             pathLength: 1, 
             opacity: node.isInPath ? 0.8 : 0.4,
-            stroke: node.isInPath ? "#10b981" : "#38bdf8"
+            stroke: node.isInPath 
+              ? (node.isBPlus ? "#818cf8" : "#10b981") 
+              : (node.isBPlus ? "#6366f1" : "#38bdf8")
           }}
           transition={{ duration: 0.5 }}
           x1={parentX}
@@ -69,7 +71,9 @@ const TreeNode = ({ node, x, y, parentX, parentY }: TreeNodeProps) => {
           height={NODE_HEIGHT}
           rx={8}
           className={`fill-slate-900/90 stroke-2 transition-colors duration-500 ${
-            node.isInPath ? "stroke-emerald-500" : "stroke-sky-500/50"
+            node.isInPath 
+              ? (node.isBPlus ? "stroke-indigo-500" : "stroke-emerald-500") 
+              : (node.isBPlus ? "stroke-indigo-500/50" : "stroke-sky-500/50")
           }`}
         />
         
@@ -156,19 +160,20 @@ export default function TreeView({ tree }: TreeViewProps) {
 
   // Calculate total width to center the tree
   const totalWidth = getSubtreeWidth(tree);
+  const viewportWidth = Math.max(1000, totalWidth + 100);
 
   return (
-    <div className="w-full h-full overflow-auto cursor-grab active:cursor-grabbing p-10 scrollbar-hide">
+    <div className="w-full h-full overflow-auto cursor-grab active:cursor-grabbing scrollbar-hide">
       <svg 
-        width={Math.max(2000, totalWidth + 400)} 
-        height="1200" 
-        viewBox={`0 0 ${Math.max(2000, totalWidth + 400)} 1200`}
+        width={viewportWidth} 
+        height="800" 
+        viewBox={`0 0 ${viewportWidth} 800`}
         className="mx-auto"
       >
         <TreeNode 
           node={tree} 
-          x={1000 - (Math.max(60, tree.keys.length * NODE_WIDTH_PER_KEY) / 2)} 
-          y={80} 
+          x={(viewportWidth / 2) - (Math.max(60, tree.keys.length * NODE_WIDTH_PER_KEY) / 2)} 
+          y={60} 
         />
       </svg>
     </div>
